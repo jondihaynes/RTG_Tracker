@@ -1,18 +1,36 @@
 import { kv } from '@vercel/kv';
 import { createClient, type RedisClientType } from 'redis';
 
-const REDIS_URL = process.env.REDIS_URL?.trim();
+type RedisBackendConfig =
+  | { type: 'redis'; url: string }
+  | { type: 'upstash'; url: string; token: string };
 
 let redisClientPromise: Promise<RedisClientType | null> | null = null;
 
+function getRedisBackendConfig(): RedisBackendConfig | null {
+  const redisUrl = process.env.REDIS_URL?.trim();
+  if (redisUrl) {
+    return { type: 'redis', url: redisUrl };
+  }
+
+  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL?.trim();
+  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+  if (upstashUrl && upstashToken) {
+    return { type: 'upstash', url: upstashUrl, token: upstashToken };
+  }
+
+  return null;
+}
+
 function getRedisClient(): Promise<RedisClientType | null> {
-  if (!REDIS_URL) {
+  const backendConfig = getRedisBackendConfig();
+  if (!backendConfig || backendConfig.type !== 'redis') {
     return Promise.resolve(null);
   }
 
   if (!redisClientPromise) {
     redisClientPromise = (async () => {
-      const client = createClient({ url: REDIS_URL });
+      const client = createClient({ url: backendConfig.url });
       client.on('error', () => undefined);
       await client.connect();
       return client;
@@ -25,9 +43,64 @@ function getRedisClient(): Promise<RedisClientType | null> {
   return redisClientPromise;
 }
 
-async function readFromRedis<T>(key: string): Promise<T | null> {
-  if (!REDIS_URL) {
+async function readFromUpstash<T>(key: string, backendConfig: Extract<RedisBackendConfig, { type: 'upstash' }>): Promise<T | null> {
+  const url = new URL(`/get/${encodeURIComponent(key)}`, backendConfig.url.endsWith('/') ? backendConfig.url : `${backendConfig.url}/`);
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${backendConfig.token}`,
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as { result?: string | null };
+    if (payload.result === null || payload.result === undefined) {
+      return null;
+    }
+
+    if (typeof payload.result === 'string') {
+      return JSON.parse(payload.result) as T;
+    }
+
+    return payload.result as T;
+  } catch {
     return null;
+  }
+}
+
+async function writeToUpstash(key: string, value: unknown, backendConfig: Extract<RedisBackendConfig, { type: 'upstash' }>): Promise<boolean> {
+  const url = new URL(`/set/${encodeURIComponent(key)}`, backendConfig.url.endsWith('/') ? backendConfig.url : `${backendConfig.url}/`);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${backendConfig.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ value: JSON.stringify(value) }),
+    });
+
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function readFromRedis<T>(key: string): Promise<T | null> {
+  const backendConfig = getRedisBackendConfig();
+  if (!backendConfig) {
+    return null;
+  }
+
+  if (backendConfig.type === 'upstash') {
+    return readFromUpstash<T>(key, backendConfig);
   }
 
   try {
@@ -48,8 +121,13 @@ async function readFromRedis<T>(key: string): Promise<T | null> {
 }
 
 async function writeToRedis(key: string, value: unknown): Promise<boolean> {
-  if (!REDIS_URL) {
+  const backendConfig = getRedisBackendConfig();
+  if (!backendConfig) {
     return false;
+  }
+
+  if (backendConfig.type === 'upstash') {
+    return writeToUpstash(key, value, backendConfig);
   }
 
   try {

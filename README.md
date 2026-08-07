@@ -52,11 +52,12 @@ Local development falls back to `.data/state.json` when no shared backend is con
 
 Backend priority:
 
-1. `REDIS_URL` (if set)
-2. Vercel KV (`KV_URL`, `KV_REST_API_URL`, `KV_REST_API_TOKEN`)
-3. Local file fallback (`.data/state.json`)
+1. `REDIS_URL` for a standard Redis server
+2. `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` for Upstash Redis
+3. Vercel KV (`KV_URL`, `KV_REST_API_URL`, `KV_REST_API_TOKEN`)
+4. Local file fallback (`.data/state.json`)
 
-For Vercel deployments, add the KV integration in the Vercel dashboard and set the generated variables.
+For Vercel deployments, add the KV integration in the Vercel dashboard and set the generated variables. For Upstash, set the REST URL and token from your database details.
 
 ## Deploying
 
