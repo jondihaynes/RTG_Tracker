@@ -15,11 +15,20 @@ function getRedisBackendConfig(): RedisBackendConfig | null {
 
   const upstashUrl = process.env.UPSTASH_REDIS_REST_URL?.trim();
   const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
-  if (upstashUrl && upstashToken) {
-    return { type: 'upstash', url: upstashUrl, token: upstashToken };
+  if (!upstashUrl || !upstashToken) {
+    return null;
   }
 
-  return null;
+  const normalizedUrl = upstashUrl.replace(/^redis:\/\//, 'https://').replace(/^rediss:\/\//, 'https://');
+  if (/^https?:\/\//i.test(normalizedUrl)) {
+    return { type: 'upstash', url: normalizedUrl, token: upstashToken };
+  }
+
+  if (/^redis(?:s)?:\/\//i.test(upstashUrl)) {
+    return { type: 'redis', url: upstashUrl };
+  }
+
+  return { type: 'upstash', url: upstashUrl, token: upstashToken };
 }
 
 function getRedisClient(): Promise<RedisClientType | null> {
@@ -43,6 +52,25 @@ function getRedisClient(): Promise<RedisClientType | null> {
   return redisClientPromise;
 }
 
+function parseUpstashPayload(value: unknown): unknown {
+  if (typeof value === 'string') {
+    try {
+      return parseUpstashPayload(JSON.parse(value));
+    } catch {
+      return value;
+    }
+  }
+
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    if (record.value !== undefined && Object.keys(record).length === 1) {
+      return parseUpstashPayload(record.value);
+    }
+  }
+
+  return value;
+}
+
 async function readFromUpstash<T>(key: string, backendConfig: Extract<RedisBackendConfig, { type: 'upstash' }>): Promise<T | null> {
   const url = new URL(`/get/${encodeURIComponent(key)}`, backendConfig.url.endsWith('/') ? backendConfig.url : `${backendConfig.url}/`);
 
@@ -59,16 +87,12 @@ async function readFromUpstash<T>(key: string, backendConfig: Extract<RedisBacke
       return null;
     }
 
-    const payload = (await response.json()) as { result?: string | null };
+    const payload = (await response.json()) as { result?: string | null; error?: string };
     if (payload.result === null || payload.result === undefined) {
       return null;
     }
 
-    if (typeof payload.result === 'string') {
-      return JSON.parse(payload.result) as T;
-    }
-
-    return payload.result as T;
+    return parseUpstashPayload(payload.result) as T;
   } catch {
     return null;
   }
@@ -162,6 +186,74 @@ async function writeToKv(key: string, value: unknown): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+export function hasConfiguredSharedStorage(): boolean {
+  return Boolean(getRedisBackendConfig() || process.env.KV_URL || process.env.KV_REST_API_URL);
+}
+
+export async function probeSharedStorage() {
+  const backendConfig = getRedisBackendConfig();
+
+  if (!backendConfig) {
+    return {
+      ok: false,
+      backend: null,
+      message: 'No shared Redis or Upstash storage is configured.',
+    } as const;
+  }
+
+  if (backendConfig.type === 'upstash') {
+    const key = `__probe__${Date.now()}`;
+    const wrote = await writeToUpstash(key, { ok: true }, backendConfig);
+
+    if (!wrote) {
+      return {
+        ok: false,
+        backend: 'upstash',
+        message: 'Upstash REST write failed.',
+      } as const;
+    }
+
+    const readBack = await readFromUpstash<unknown>(key, backendConfig);
+    const ok = readBack !== null && readBack !== undefined;
+
+    return {
+      ok,
+      backend: 'upstash' as const,
+      message: ok
+        ? 'Upstash Redis is reachable and working.'
+        : 'Upstash write succeeded, but the read-back response did not match the expected probe payload.',
+    } as const;
+  }
+
+  try {
+    const client = await getRedisClient();
+    if (!client) {
+      return {
+        ok: false,
+        backend: 'redis',
+        message: 'Redis client could not be initialized.',
+      } as const;
+    }
+
+    const probeKey = `__probe__${Date.now()}`;
+    await client.set(probeKey, 'ok');
+    const value = await client.get(probeKey);
+    await client.del(probeKey);
+
+    return {
+      ok: value === 'ok',
+      backend: 'redis' as const,
+      message: value === 'ok' ? 'Redis server is reachable and working.' : 'Redis connection responded unexpectedly.',
+    } as const;
+  } catch (error) {
+    return {
+      ok: false,
+      backend: 'redis' as const,
+      message: error instanceof Error ? error.message : 'Redis connection failed.',
+    } as const;
   }
 }
 

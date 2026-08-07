@@ -52,6 +52,38 @@ test('writeSharedState uses Upstash REST credentials when present', async () => 
   }
 });
 
+test('probeSharedStorage reports a successful Upstash connection', async () => {
+  process.env.UPSTASH_REDIS_REST_URL = 'https://example.upstash.io';
+  process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token';
+  delete process.env.REDIS_URL;
+
+  global.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+    if (url.includes('/set/')) {
+      return new Response(JSON.stringify({ result: 'OK' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ result: JSON.stringify({ ok: true }) }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  }) as typeof fetch;
+
+  try {
+    const { probeSharedStorage } = await import('../src/lib/shared-state-backend.ts');
+    const result = await probeSharedStorage();
+
+    assert.equal(result.ok, true);
+    assert.equal(result.backend, 'upstash');
+  } finally {
+    global.fetch = originalFetch;
+    restoreEnv();
+  }
+});
+
 function restoreEnv() {
   if (originalEnv.UPSTASH_REDIS_REST_URL === undefined) {
     delete process.env.UPSTASH_REDIS_REST_URL;
