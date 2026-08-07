@@ -16,6 +16,7 @@ import {
 
 const AUTH_CODE = siteConfig.authCode;
 const AUTH_STORAGE_KEY = siteConfig.authStorageKey;
+const SHARED_STATE_POLL_INTERVAL_MS = 9000;
 
 export default function ThisIsHePage() {
   const [mounted, setMounted] = useState(false);
@@ -66,12 +67,18 @@ export default function ThisIsHePage() {
       loadSharedState();
     }, 0);
 
+    const refreshInterval = window.setInterval(async () => {
+      const shared = await fetchAndMergeServerState();
+      setTracker(shared ?? readTrackerState());
+    }, SHARED_STATE_POLL_INTERVAL_MS);
+
     const unsubscribe = subscribeToTrackerState(() => {
       setTracker(readTrackerState());
     });
 
     return () => {
       window.clearTimeout(timer);
+      window.clearInterval(refreshInterval);
       unsubscribe();
     };
   }, []);
@@ -169,7 +176,7 @@ export default function ThisIsHePage() {
     updateTracker({
       currentTask: tracker.nextTask.trim(),
       nextTask: '',
-      history: [{ id: Date.now(), text: tracker.currentTask, from: tracker.currentSince || '', until: timestampIso }, ...tracker.history].slice(0, 6),
+      history: [{ id: Date.now(), text: tracker.currentTask, from: tracker.currentSince || '', until: timestampIso }, ...tracker.history].slice(0, 20),
       currentSince: timestampIso,
       nextSince: '',
     });
@@ -281,7 +288,7 @@ export default function ThisIsHePage() {
     updateTracker({
       currentTask: tracker.nextTask.trim(),
       nextTask: '',
-      history: [{ id: Date.now(), text: tracker.currentTask, from: tracker.currentSince || '', until: nowIso }, ...tracker.history].slice(0, 6),
+      history: [{ id: Date.now(), text: tracker.currentTask, from: tracker.currentSince || '', until: nowIso }, ...tracker.history].slice(0, 20),
       currentSince: nowIso,
       nextSince: '',
     });

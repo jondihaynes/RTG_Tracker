@@ -1,12 +1,32 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
-import { createSiteConfig } from './site-config.ts';
+import test from 'node:test';
+
+process.env.NEXT_PUBLIC_APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'Ready to Go';
+process.env.NEXT_PUBLIC_OWNER_NAME = process.env.NEXT_PUBLIC_OWNER_NAME ?? 'Your Name';
+process.env.NEXT_PUBLIC_PAGE_TITLE = process.env.NEXT_PUBLIC_PAGE_TITLE ?? 'Ready to Go Status';
+process.env.NEXT_PUBLIC_PAGE_DESCRIPTION =
+  process.env.NEXT_PUBLIC_PAGE_DESCRIPTION ??
+  'A clean live status page for your current focus, next task, and recent history.';
+process.env.NEXT_PUBLIC_AUTH_CODE = process.env.NEXT_PUBLIC_AUTH_CODE ?? '1111';
+process.env.NEXT_PUBLIC_STATE_STORAGE_KEY =
+  process.env.NEXT_PUBLIC_STATE_STORAGE_KEY ?? 'ready-to-go-tracker-state';
+process.env.NEXT_PUBLIC_AUTH_STORAGE_KEY =
+  process.env.NEXT_PUBLIC_AUTH_STORAGE_KEY ?? 'ready-to-go-tracker-auth';
+process.env.NEXT_PUBLIC_SYNC_EVENT_NAME =
+  process.env.NEXT_PUBLIC_SYNC_EVENT_NAME ?? 'ready-to-go-tracker-sync';
+
+const { createSiteConfig } = await import('../src/lib/site-config.ts');
 
 test('createSiteConfig falls back to unprefixed environment variables', () => {
   const config = createSiteConfig({
+    NEXT_PUBLIC_APP_NAME: '',
+    NEXT_PUBLIC_OWNER_NAME: '',
+    NEXT_PUBLIC_PAGE_TITLE: '',
+    NEXT_PUBLIC_PAGE_DESCRIPTION: '',
+    NEXT_PUBLIC_STATE_STORAGE_KEY: '',
+    NEXT_PUBLIC_AUTH_STORAGE_KEY: '',
+    NEXT_PUBLIC_SYNC_EVENT_NAME: '',
+    NEXT_PUBLIC_AUTH_CODE: '',
     APP_NAME: 'Fallback app',
     OWNER_NAME: 'Fallback owner',
     PAGE_TITLE: 'Fallback title',
@@ -49,6 +69,7 @@ test('createSiteConfig warns when a value falls back to the built-in default', (
       NEXT_PUBLIC_APP_NAME: '',
       APP_NAME: '',
     } as Record<string, string | undefined>);
+
     assert.equal(config.appName, 'Ready to Go');
     assert.equal(calls.length > 0, true);
     assert.match(calls.join('\n'), /NEXT_PUBLIC_APP_NAME/);

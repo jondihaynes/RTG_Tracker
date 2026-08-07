@@ -1,8 +1,8 @@
-import { kv } from '@vercel/kv';
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { siteConfig } from '@/lib/site-config';
+import { readSharedState, writeSharedState } from '@/lib/shared-state-backend';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,25 +12,6 @@ const STORAGE_KEY = siteConfig.stateStorageKey;
 
 function ensureDir() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-async function readStateFromKv() {
-  try {
-    const value = await kv.get(STORAGE_KEY);
-    if (value === null || value === undefined) return null;
-    return typeof value === 'string' ? JSON.parse(value) : value;
-  } catch {
-    return null;
-  }
-}
-
-async function writeStateToKv(obj: unknown) {
-  try {
-    await kv.set(STORAGE_KEY, obj);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 function readStateFromFile() {
@@ -50,8 +31,8 @@ function writeStateToFile(obj: unknown) {
 }
 
 export async function GET() {
-  const kvState = await readStateFromKv();
-  const state = kvState ?? readStateFromFile();
+  const sharedState = await readSharedState(STORAGE_KEY);
+  const state = sharedState ?? readStateFromFile();
   return NextResponse.json(
     { state },
     {
@@ -67,8 +48,8 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const savedToKv = await writeStateToKv(body);
-    if (!savedToKv) {
+    const savedToSharedState = await writeSharedState(STORAGE_KEY, body);
+    if (!savedToSharedState) {
       writeStateToFile(body);
     }
     return NextResponse.json({ ok: true });

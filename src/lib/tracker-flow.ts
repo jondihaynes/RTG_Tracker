@@ -9,6 +9,8 @@ export type TrackerFlowState = {
   history: Array<{ id: number; text: string; from: string; until?: string }>;
 };
 
+const MAX_HISTORY_ITEMS = 20;
+
 export function createQueuePushState(
   state: TrackerFlowState,
   newCurrentTask: string,
@@ -30,7 +32,7 @@ export function createQueuePushState(
     currentTaskPrevious: '',
     showOriginal: false,
     statusMessage: state.statusMessage || '',
-    history: [historyItem, ...state.history].slice(0, 6),
+    history: [historyItem, ...state.history].slice(0, MAX_HISTORY_ITEMS),
   };
 }
 

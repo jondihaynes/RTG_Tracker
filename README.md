@@ -1,81 +1,77 @@
 # Ready to Go Status
 
-This is a reusable [Next.js](https://nextjs.org) starter for a shared status page that you can customize and build on.
+A reusable Next.js starter for a shared status page.
 
-## Getting Started
+## Quick Start
 
-Run the development server:
+1. Install dependencies:
 
 ```bash
-npm run dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view it.
-
-## Easy local customization
-
-You can change the visible app text and auth code without editing the main code files. Create a local file named `.env.local` by copying [.env.example](.env.example) and changing the values you want:
+2. Create local environment variables:
 
 ```bash
 cp .env.example .env.local
 ```
 
-The most common values to edit are:
+3. Start the development server:
 
-- `NEXT_PUBLIC_APP_NAME` (also accepts `APP_NAME`)
-- `NEXT_PUBLIC_OWNER_NAME` (also accepts `OWNER_NAME`)
-- `NEXT_PUBLIC_PAGE_TITLE` (also accepts `PAGE_TITLE`)
-- `NEXT_PUBLIC_PAGE_DESCRIPTION` (also accepts `PAGE_DESCRIPTION`)
-- `NEXT_PUBLIC_AUTH_CODE` (also accepts `AUTH_CODE`)
-
-These values are stored locally and will stay intact even if you pull updated code from Git.
-
-## Deploying to Vercel without losing status data
-
-The tracker now uses Vercel KV for shared state when the proper environment variables are set. Local development still falls back to the local `.data/state.json` file.
-
-### 1. Create a Vercel KV store
-
-- Open your Vercel project dashboard.
-- Add the Vercel KV integration from the marketplace.
-- Copy the generated environment variables into your project settings.
-
-### 2. Add the environment variables
-
-In Vercel, add the deployment variables for both the site text and the KV connection:
-
-```env
-NEXT_PUBLIC_APP_NAME=Ready to Go
-NEXT_PUBLIC_OWNER_NAME=Your Name
-NEXT_PUBLIC_PAGE_TITLE=Ready to Go Status
-NEXT_PUBLIC_PAGE_DESCRIPTION=A clean live status page for your current focus, next task, and recent history.
-NEXT_PUBLIC_AUTH_CODE=1111
+```bash
+npm run dev
 ```
 
-The app also accepts the Vercel-style unprefixed names (`APP_NAME`, `OWNER_NAME`, `PAGE_TITLE`, `PAGE_DESCRIPTION`, `AUTH_CODE`) if you prefer that format.
+Open http://localhost:3000.
 
-Add the KV variables:
+## Scripts
 
-```env
-KV_URL=...
-KV_REST_API_URL=...
-KV_REST_API_TOKEN=...
-```
+- `npm run dev`: Start local dev server.
+- `npm run build`: Build production bundle.
+- `npm run start`: Run production server.
+- `npm run lint`: Run ESLint.
+- `npm run test`: Run all tests once.
+- `npm run test:watch`: Run tests in watch mode.
+- `npm run sync:state`: Copy local `.data/state.json` into shared KV/Redis state.
 
-### 3. Deploy
+## Environment Variables
 
-Push your repo to GitHub and connect it to Vercel, or run:
+Use `.env.local` for local development. Core values:
+
+- `NEXT_PUBLIC_APP_NAME`
+- `NEXT_PUBLIC_OWNER_NAME`
+- `NEXT_PUBLIC_PAGE_TITLE`
+- `NEXT_PUBLIC_PAGE_DESCRIPTION`
+- `NEXT_PUBLIC_AUTH_CODE`
+
+The app also supports unprefixed alternatives (for example `APP_NAME`, `AUTH_CODE`) when needed.
+
+## Shared State Backends
+
+Local development falls back to `.data/state.json` when no shared backend is configured.
+
+Backend priority:
+
+1. `REDIS_URL` (if set)
+2. Vercel KV (`KV_URL`, `KV_REST_API_URL`, `KV_REST_API_TOKEN`)
+3. Local file fallback (`.data/state.json`)
+
+For Vercel deployments, add the KV integration in the Vercel dashboard and set the generated variables.
+
+## Deploying
+
+Deploy through Vercel UI or CLI:
 
 ```bash
 vercel --prod
 ```
 
-### 4. Migrate your current local state
+## Migrating Existing Local State
 
-To preserve the existing status state from `.data/state.json`, run:
+If you already have local status data in `.data/state.json`, run:
 
 ```bash
 npm run sync:state
 ```
 
-That copies the current local tracker state into Vercel KV so future deploys and pushes keep the same data.
+This preserves the current state by copying it into your configured shared backend.

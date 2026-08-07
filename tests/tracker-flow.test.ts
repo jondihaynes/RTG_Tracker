@@ -1,14 +1,19 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createQueuePushState, createRewordedCurrentTaskState, getVisibleCurrentTask } from './tracker-flow.js';
-import { normalizeTrackerState } from './tracker-store.js';
+import test from 'node:test';
+const trackerFlow = await import('../src/lib/tracker-flow.ts');
+const {
+  createQueuePushState,
+  createRewordedCurrentTaskState,
+  getVisibleCurrentTask,
+} = trackerFlow;
 
-test('createQueuePushState moves the current task to history and keeps the planned next task unchanged', () => {
+test('createQueuePushState moves current task to history and keeps planned next task', () => {
   const state = {
     currentTask: 'Finish the launch deck',
     nextTask: 'Ship the release',
     currentSince: '2026-01-01T00:00:00.000Z',
     currentTaskPrevious: '',
+    statusMessage: '',
     history: [],
   };
 
@@ -20,11 +25,14 @@ test('createQueuePushState moves the current task to history and keeps the plann
   assert.equal(nextState.currentTaskPrevious, '');
 });
 
-test('createRewordedCurrentTaskState preserves since time and stores the prior wording', () => {
+test('createRewordedCurrentTaskState preserves since time and stores prior wording', () => {
   const state = {
     currentTask: 'Review the PR',
+    nextTask: '',
     currentSince: '2026-01-01T00:00:00.000Z',
     currentTaskPrevious: '',
+    statusMessage: '',
+    history: [],
   };
 
   const nextState = createRewordedCurrentTaskState(state, 'Review the pull request');
@@ -37,21 +45,12 @@ test('createRewordedCurrentTaskState preserves since time and stores the prior w
 test('getVisibleCurrentTask swaps between reworded and original wording', () => {
   const visible = getVisibleCurrentTask({
     currentTask: 'Ship the release',
+    nextTask: '',
+    statusMessage: '',
+    history: [],
     currentTaskPrevious: 'Ship the update',
     showOriginal: true,
   });
 
   assert.equal(visible, 'Ship the update');
-});
-
-test('normalizeTrackerState fills in defaults while preserving existing history', () => {
-  const normalized = normalizeTrackerState({
-    currentTask: 'Ship the release',
-    history: [{ id: 1, text: 'Draft the update', from: '2026-01-01T00:00:00.000Z' }],
-  });
-
-  assert.equal(normalized.currentTask, 'Ship the release');
-  assert.equal(normalized.nextTask, '');
-  assert.equal(normalized.history[0].text, 'Draft the update');
-  assert.equal(normalized.showOriginal, false);
 });

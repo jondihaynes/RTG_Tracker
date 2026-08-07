@@ -21,6 +21,7 @@ export type TrackerState = {
 const STORAGE_KEY = siteConfig.stateStorageKey;
 
 const starterHistory: TrackerHistoryItem[] = [];
+const isString = (value: unknown): value is string => typeof value === 'string';
 
 function normalizeHistory(history: unknown): TrackerHistoryItem[] {
   if (!Array.isArray(history)) {
@@ -33,10 +34,10 @@ function normalizeHistory(history: unknown): TrackerHistoryItem[] {
     }
 
     const record = item as Record<string, unknown>;
-    const text = typeof record.text === 'string' ? record.text : '';
-    const from = typeof record.from === 'string'
+    const text = isString(record.text) ? record.text : '';
+    const from = isString(record.from)
       ? record.from
-      : typeof record.timestamp === 'string'
+      : isString(record.timestamp)
         ? record.timestamp
         : '';
 
@@ -48,7 +49,7 @@ function normalizeHistory(history: unknown): TrackerHistoryItem[] {
       id: typeof record.id === 'number' ? record.id : acc.length + 1,
       text,
       from,
-      until: typeof record.until === 'string' ? record.until : undefined,
+      until: isString(record.until) ? record.until : undefined,
     });
 
     return acc;
@@ -72,13 +73,13 @@ export function normalizeTrackerState(input: Partial<TrackerState> | null | unde
   const defaults = getDefaultTrackerState();
 
   return {
-    currentTask: typeof input?.currentTask === 'string' ? input.currentTask : defaults.currentTask,
-    nextTask: typeof input?.nextTask === 'string' ? input.nextTask : defaults.nextTask,
-    currentSince: typeof input?.currentSince === 'string' ? input.currentSince : defaults.currentSince,
-    nextSince: typeof input?.nextSince === 'string' ? input.nextSince : defaults.nextSince,
+    currentTask: isString(input?.currentTask) ? input.currentTask : defaults.currentTask,
+    nextTask: isString(input?.nextTask) ? input.nextTask : defaults.nextTask,
+    currentSince: isString(input?.currentSince) ? input.currentSince : defaults.currentSince,
+    nextSince: isString(input?.nextSince) ? input.nextSince : defaults.nextSince,
     history: normalizeHistory(input?.history),
-    statusMessage: typeof input?.statusMessage === 'string' ? input.statusMessage : defaults.statusMessage,
-    currentTaskPrevious: typeof input?.currentTaskPrevious === 'string' ? input.currentTaskPrevious : defaults.currentTaskPrevious,
+    statusMessage: isString(input?.statusMessage) ? input.statusMessage : defaults.statusMessage,
+    currentTaskPrevious: isString(input?.currentTaskPrevious) ? input.currentTaskPrevious : defaults.currentTaskPrevious,
     showOriginal: input?.showOriginal === true,
   };
 }
@@ -124,10 +125,10 @@ export function persistTrackerState(state: TrackerState): TrackerState {
   return normalized;
 }
 
-function parseTime(t?: string | null) {
-  if (!t) return 0;
-  const v = Date.parse(t);
-  return Number.isFinite(v) ? v : 0;
+function parseTime(value?: string | null) {
+  if (!value) return 0;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function mergeTrackerStates(local: TrackerState, server: Partial<TrackerState>): TrackerState {
