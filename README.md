@@ -22,11 +22,11 @@ cp .env.example .env.local
 
 The most common values to edit are:
 
-- `NEXT_PUBLIC_APP_NAME`
-- `NEXT_PUBLIC_OWNER_NAME`
-- `NEXT_PUBLIC_PAGE_TITLE`
-- `NEXT_PUBLIC_PAGE_DESCRIPTION`
-- `NEXT_PUBLIC_AUTH_CODE`
+- `NEXT_PUBLIC_APP_NAME` (also accepts `APP_NAME`)
+- `NEXT_PUBLIC_OWNER_NAME` (also accepts `OWNER_NAME`)
+- `NEXT_PUBLIC_PAGE_TITLE` (also accepts `PAGE_TITLE`)
+- `NEXT_PUBLIC_PAGE_DESCRIPTION` (also accepts `PAGE_DESCRIPTION`)
+- `NEXT_PUBLIC_AUTH_CODE` (also accepts `AUTH_CODE`)
 
 These values are stored locally and will stay intact even if you pull updated code from Git.
 
@@ -42,7 +42,19 @@ The tracker now uses Vercel KV for shared state when the proper environment vari
 
 ### 2. Add the environment variables
 
-In Vercel, add:
+In Vercel, add the deployment variables for both the site text and the KV connection:
+
+```env
+NEXT_PUBLIC_APP_NAME=Ready to Go
+NEXT_PUBLIC_OWNER_NAME=Your Name
+NEXT_PUBLIC_PAGE_TITLE=Ready to Go Status
+NEXT_PUBLIC_PAGE_DESCRIPTION=A clean live status page for your current focus, next task, and recent history.
+NEXT_PUBLIC_AUTH_CODE=1111
+```
+
+The app also accepts the Vercel-style unprefixed names (`APP_NAME`, `OWNER_NAME`, `PAGE_TITLE`, `PAGE_DESCRIPTION`, `AUTH_CODE`) if you prefer that format.
+
+Add the KV variables:
 
 ```env
 KV_URL=...
