@@ -181,7 +181,7 @@ function mergeTrackerStates(local: TrackerState, server: Partial<TrackerState>):
 export async function fetchAndMergeServerState(): Promise<TrackerState | null> {
   if (typeof window === 'undefined') return null;
   try {
-    const res = await fetch('/api/state');
+    const res = await fetch('/api/state', { cache: 'no-store' });
     if (!res.ok) return null;
     const json = await res.json();
     const serverState = json?.state as Partial<TrackerState> | undefined;

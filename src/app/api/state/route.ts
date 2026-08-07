@@ -4,6 +4,8 @@ import fs from 'fs';
 import path from 'path';
 import { siteConfig } from '@/lib/site-config';
 
+export const dynamic = 'force-dynamic';
+
 const DATA_DIR = path.join(process.cwd(), '.data');
 const STATE_FILE = path.join(DATA_DIR, 'state.json');
 const STORAGE_KEY = siteConfig.stateStorageKey;
@@ -50,7 +52,16 @@ function writeStateToFile(obj: unknown) {
 export async function GET() {
   const kvState = await readStateFromKv();
   const state = kvState ?? readStateFromFile();
-  return NextResponse.json({ state });
+  return NextResponse.json(
+    { state },
+    {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+    },
+  );
 }
 
 export async function POST(req: Request) {
