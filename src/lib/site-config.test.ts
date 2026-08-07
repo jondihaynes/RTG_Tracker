@@ -23,3 +23,21 @@ test('createSiteConfig falls back to unprefixed environment variables', () => {
   assert.equal(config.syncEventName, 'fallback-sync');
   assert.equal(config.authCode, '4321');
 });
+
+test('createSiteConfig warns when a value falls back to the built-in default', () => {
+  const warn = console.warn;
+  const calls: string[] = [];
+
+  console.warn = (message?: unknown) => {
+    calls.push(String(message));
+  };
+
+  try {
+    const config = createSiteConfig({} as Record<string, string | undefined>);
+    assert.equal(config.appName, 'Ready to Go');
+    assert.equal(calls.length > 0, true);
+    assert.match(calls.join('\n'), /NEXT_PUBLIC_APP_NAME/);
+  } finally {
+    console.warn = warn;
+  }
+});

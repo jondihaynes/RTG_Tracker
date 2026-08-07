@@ -9,9 +9,25 @@ const defaults = {
   authCode: '1111',
 };
 
+const warnOnFallback = (key: string, fallback: string) => {
+  const hasNextPublic = typeof process.env[key] === 'string' && process.env[key]?.trim();
+  const hasLegacy = typeof process.env[key.replace('NEXT_PUBLIC_', '')] === 'string' && process.env[key.replace('NEXT_PUBLIC_', '')]?.trim();
+
+  if (!hasNextPublic && !hasLegacy) {
+    console.warn(`[site-config] ${key} was not found in process.env; using default: ${fallback}`);
+  }
+};
+
 const readEnv = (env: Record<string, string | undefined>, key: string, fallback: string) => {
   const value = env[key] ?? env[key.replace('NEXT_PUBLIC_', '')];
-  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+  const hasValue = typeof value === 'string' && value.trim();
+
+  if (!hasValue) {
+    warnOnFallback(key, fallback);
+    return fallback;
+  }
+
+  return value.trim();
 };
 
 export const createSiteConfig = (env: Record<string, string | undefined> = process.env) => {
