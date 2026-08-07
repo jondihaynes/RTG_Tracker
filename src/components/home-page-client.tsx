@@ -25,8 +25,6 @@ export default function HomePageClient({ config }: HomePageClientProps) {
   const [flashCurrent, setFlashCurrent] = useState(false);
   const [flashNext, setFlashNext] = useState(false);
   const [storageError, setStorageError] = useState<string | null>(null);
-  const [probeMessage, setProbeMessage] = useState<string | null>(null);
-  const [probeRunning, setProbeRunning] = useState(false);
   const trackerRef = useRef<TrackerState>(getDefaultTrackerState());
 
   const applyTrackerState = useCallback((nextState: TrackerState | null | undefined) => {
@@ -111,24 +109,6 @@ export default function HomePageClient({ config }: HomePageClientProps) {
   const canShowOriginal = Boolean(tracker.currentTaskPrevious && tracker.currentTaskPrevious !== tracker.currentTask);
   const effectiveShowOriginal = canShowOriginal && showOriginal;
 
-  const runStorageProbe = useCallback(async () => {
-    setProbeRunning(true);
-    setProbeMessage(null);
-
-    try {
-      const response = await fetch('/api/state', { method: 'PATCH', cache: 'no-store' });
-      const payload = await response.json();
-      const message = typeof payload?.message === 'string' ? payload.message : 'Storage probe completed.';
-      setProbeMessage(message);
-      setStorageError(response.ok ? null : message);
-    } catch {
-      setProbeMessage('Storage probe failed to complete.');
-      setStorageError('Storage probe failed to complete.');
-    } finally {
-      setProbeRunning(false);
-    }
-  }, []);
-
   const visibleItems = useMemo(() => {
     return showAll ? tracker.history : tracker.history.slice(0, 3);
   }, [showAll, tracker.history]);
@@ -172,24 +152,6 @@ export default function HomePageClient({ config }: HomePageClientProps) {
             <p className="mt-2">{storageError}</p>
           </section>
         ) : null}
-
-        <section className="mb-8 rounded-[1.5rem] border border-cyan-400/20 bg-[#0f1115]/90 p-5 text-sm text-slate-300">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="font-semibold uppercase tracking-[0.25em] text-cyan-300">Connection check</p>
-              <p className="mt-2">Test the configured Redis or Upstash backend from this app.</p>
-            </div>
-            <button
-              type="button"
-              onClick={runStorageProbe}
-              disabled={probeRunning}
-              className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 font-medium text-cyan-200 transition hover:border-cyan-300 hover:bg-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {probeRunning ? 'Checking…' : 'Run probe'}
-            </button>
-          </div>
-          {probeMessage ? <p className="mt-3 text-sm text-slate-400">{probeMessage}</p> : null}
-        </section>
 
         <section className="rounded-[2rem] border border-white/10 bg-[#12151a]/90 p-8 shadow-2xl shadow-black/20 sm:p-10 lg:p-12">
           <div className="flex items-center gap-3 text-sm uppercase tracking-[0.3em] text-slate-400">
