@@ -9,37 +9,42 @@ const defaults = {
   authCode: '1111',
 };
 
-const warnOnFallback = (key: string, fallback: string) => {
-  const hasNextPublic = typeof process.env[key] === 'string' && process.env[key]?.trim();
-  const hasLegacy = typeof process.env[key.replace('NEXT_PUBLIC_', '')] === 'string' && process.env[key.replace('NEXT_PUBLIC_', '')]?.trim();
-
-  if (!hasNextPublic && !hasLegacy) {
-    console.warn(`[site-config] ${key} was not found in process.env; using default: ${fallback}`);
-  }
+const warnOnFallback = (key: string, fallback: string, legacyKey?: string) => {
+  const target = legacyKey ? `${key} or ${legacyKey}` : key;
+  console.warn(`[site-config] ${target} was not found in environment; using default: ${fallback}`);
 };
 
-const readEnv = (env: Record<string, string | undefined>, key: string, fallback: string) => {
-  const value = env[key] ?? env[key.replace('NEXT_PUBLIC_', '')];
-  const hasValue = typeof value === 'string' && value.trim();
+const readEnv = (
+  env: Record<string, string | undefined>,
+  nextPublicKey: string,
+  legacyKey: string,
+  fallback: string,
+) => {
+  const nextPublicValue = env[nextPublicKey] ?? process.env[nextPublicKey];
+  const legacyValue = env[legacyKey] ?? process.env[legacyKey];
 
-  if (!hasValue) {
-    warnOnFallback(key, fallback);
-    return fallback;
+  if (typeof nextPublicValue === 'string' && nextPublicValue.trim()) {
+    return nextPublicValue.trim();
   }
 
-  return value.trim();
+  if (typeof legacyValue === 'string' && legacyValue.trim()) {
+    return legacyValue.trim();
+  }
+
+  warnOnFallback(nextPublicKey, fallback, legacyKey);
+  return fallback;
 };
 
 export const createSiteConfig = (env: Record<string, string | undefined> = process.env) => {
   const config = {
-    appName: readEnv(env, 'NEXT_PUBLIC_APP_NAME', defaults.appName),
-    ownerName: readEnv(env, 'NEXT_PUBLIC_OWNER_NAME', defaults.ownerName),
-    pageTitle: readEnv(env, 'NEXT_PUBLIC_PAGE_TITLE', defaults.pageTitle),
-    pageDescription: readEnv(env, 'NEXT_PUBLIC_PAGE_DESCRIPTION', defaults.pageDescription),
-    stateStorageKey: readEnv(env, 'NEXT_PUBLIC_STATE_STORAGE_KEY', defaults.stateStorageKey),
-    authStorageKey: readEnv(env, 'NEXT_PUBLIC_AUTH_STORAGE_KEY', defaults.authStorageKey),
-    syncEventName: readEnv(env, 'NEXT_PUBLIC_SYNC_EVENT_NAME', defaults.syncEventName),
-    authCode: readEnv(env, 'NEXT_PUBLIC_AUTH_CODE', defaults.authCode),
+    appName: readEnv(env, 'NEXT_PUBLIC_APP_NAME', 'APP_NAME', defaults.appName),
+    ownerName: readEnv(env, 'NEXT_PUBLIC_OWNER_NAME', 'OWNER_NAME', defaults.ownerName),
+    pageTitle: readEnv(env, 'NEXT_PUBLIC_PAGE_TITLE', 'PAGE_TITLE', defaults.pageTitle),
+    pageDescription: readEnv(env, 'NEXT_PUBLIC_PAGE_DESCRIPTION', 'PAGE_DESCRIPTION', defaults.pageDescription),
+    stateStorageKey: readEnv(env, 'NEXT_PUBLIC_STATE_STORAGE_KEY', 'STATE_STORAGE_KEY', defaults.stateStorageKey),
+    authStorageKey: readEnv(env, 'NEXT_PUBLIC_AUTH_STORAGE_KEY', 'AUTH_STORAGE_KEY', defaults.authStorageKey),
+    syncEventName: readEnv(env, 'NEXT_PUBLIC_SYNC_EVENT_NAME', 'SYNC_EVENT_NAME', defaults.syncEventName),
+    authCode: readEnv(env, 'NEXT_PUBLIC_AUTH_CODE', 'AUTH_CODE', defaults.authCode),
   };
 
   return {
