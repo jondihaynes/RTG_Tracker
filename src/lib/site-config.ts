@@ -1,6 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
 const defaults = {
   appName: 'Ready to Go',
   ownerName: 'Your Name',
@@ -17,63 +14,8 @@ const warnOnFallback = (key: string, fallback: string, legacyKey?: string) => {
   console.warn(`[site-config] ${target} was not found in environment; using default: ${fallback}`);
 };
 
-const parseEnvFile = (content: string) => {
-  const values: Record<string, string> = {};
-
-  for (const rawLine of content.split(/\r?\n/)) {
-    const line = rawLine.trim();
-
-    if (!line || line.startsWith('#')) {
-      continue;
-    }
-
-    const separatorIndex = line.indexOf('=');
-    if (separatorIndex === -1) {
-      continue;
-    }
-
-    const key = line.slice(0, separatorIndex).trim().replace(/^export\s+/, '');
-    let value = line.slice(separatorIndex + 1).trim();
-
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-
-    values[key] = value;
-  }
-
-  return values;
-};
-
-const loadDotEnvFiles = (cwd: string) => {
-  const envName = process.env.NODE_ENV || 'development';
-  const candidates = [
-    '.env',
-    `.env.${envName}`,
-    '.env.local',
-    `.env.${envName}.local`,
-  ];
-
-  return candidates.reduce<Record<string, string>>((acc, fileName) => {
-    const filePath = path.join(cwd, fileName);
-
-    if (!fs.existsSync(filePath)) {
-      return acc;
-    }
-
-    const parsed = parseEnvFile(fs.readFileSync(filePath, 'utf8'));
-    return { ...acc, ...parsed };
-  }, {});
-};
-
 const resolveEnv = (env: Record<string, string | undefined> = process.env) => {
-  const fileEnv = loadDotEnvFiles(process.cwd());
-
   return {
-    ...fileEnv,
     ...process.env,
     ...env,
   };
