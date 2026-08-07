@@ -308,7 +308,7 @@ export default function ThisIsHePage() {
           <div>
             <p className="text-xs uppercase tracking-[0.35em] text-slate-400">{siteConfig.appName}</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-              {siteConfig.getUpdateHeading()}
+              {siteConfig.updateHeading}
             </h1>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -334,7 +334,7 @@ export default function ThisIsHePage() {
           <section className="rounded-[2rem] border border-white/10 bg-[#12151a]/90 p-8 shadow-2xl shadow-black/20 sm:p-10">
             <div className="max-w-2xl">
               <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Authentication</p>
-              <h2 className="mt-3 text-3xl font-semibold text-white">{siteConfig.getAuthHeading()}</h2>
+              <h2 className="mt-3 text-3xl font-semibold text-white">{siteConfig.authHeading}</h2>
               <p className="mt-3 text-lg leading-8 text-slate-400">
                 Enter your four-digit code to sign in. Choose &quot;Remember&quot; only on personal devices.
               </p>
@@ -383,7 +383,7 @@ export default function ThisIsHePage() {
                   <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Current</p>
                   <div className="mt-3 flex flex-wrap items-center gap-3">
                     <label className="block text-sm font-medium text-slate-300" htmlFor="current-task">
-                      {siteConfig.getCurrentLabel()}
+                      {siteConfig.currentLabel}
                     </label>
                     <button
                       type="button"
@@ -410,7 +410,7 @@ export default function ThisIsHePage() {
                     readOnly={!currentEditUnlocked}
                     onChange={(event) => setCurrentDraft(event.target.value)}
                     className={`mt-3 w-full rounded-2xl border bg-[#0f1115] px-5 py-4 text-2xl font-medium text-white outline-none focus:border-cyan-400 ${currentFlare ? 'border-cyan-400/60 ring-1 ring-cyan-400/20' : 'border-slate-800'}`}
-                    placeholder={siteConfig.getCurrentPlaceholder()}
+                    placeholder={siteConfig.currentPlaceholder}
                   />
                   {currentEditUnlocked ? (
                     <div className="mt-3 rounded-2xl border border-slate-800 bg-[#0f1115] p-4">
@@ -464,7 +464,7 @@ export default function ThisIsHePage() {
                   <div className="flex-1">
                     <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Doing next</p>
                     <label className="mt-3 block text-sm font-medium text-slate-300" htmlFor="next-task">
-                      {siteConfig.getNextLabel()}
+                      {siteConfig.nextLabel}
                     </label>
                     <input
                       id="next-task"

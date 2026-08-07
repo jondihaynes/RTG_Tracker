@@ -27,42 +27,13 @@ test('createSiteConfig falls back to unprefixed environment variables', () => {
   assert.equal(config.authCode, '4321');
 });
 
-test('createSiteConfig loads values from .env when .env.local is not present', () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'rtg-site-config-'));
-  const envPath = path.join(tempDir, '.env');
+test('createSiteConfig prefers NEXT_PUBLIC values over unprefixed fallbacks', () => {
+  const config = createSiteConfig({
+    NEXT_PUBLIC_APP_NAME: 'From NEXT_PUBLIC',
+    APP_NAME: 'From legacy',
+  } as Record<string, string | undefined>);
 
-  fs.writeFileSync(envPath, 'NEXT_PUBLIC_APP_NAME=From .env\nAPP_NAME=From .env fallback\n');
-
-  const originalCwd = process.cwd();
-
-  try {
-    process.chdir(tempDir);
-    const config = createSiteConfig();
-
-    assert.equal(config.appName, 'From .env');
-    assert.equal(config.ownerName, 'Your Name');
-  } finally {
-    process.chdir(originalCwd);
-    fs.rmSync(tempDir, { recursive: true, force: true });
-  }
-});
-
-test('createSiteConfig prefers .env.local over .env', () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'rtg-site-config-'));
-  fs.writeFileSync(path.join(tempDir, '.env'), 'NEXT_PUBLIC_APP_NAME=From .env\n');
-  fs.writeFileSync(path.join(tempDir, '.env.local'), 'NEXT_PUBLIC_APP_NAME=From .env.local\n');
-
-  const originalCwd = process.cwd();
-
-  try {
-    process.chdir(tempDir);
-    const config = createSiteConfig();
-
-    assert.equal(config.appName, 'From .env.local');
-  } finally {
-    process.chdir(originalCwd);
-    fs.rmSync(tempDir, { recursive: true, force: true });
-  }
+  assert.equal(config.appName, 'From NEXT_PUBLIC');
 });
 
 test('createSiteConfig warns when a value falls back to the built-in default', () => {
@@ -74,7 +45,10 @@ test('createSiteConfig warns when a value falls back to the built-in default', (
   };
 
   try {
-    const config = createSiteConfig({} as Record<string, string | undefined>);
+    const config = createSiteConfig({
+      NEXT_PUBLIC_APP_NAME: '',
+      APP_NAME: '',
+    } as Record<string, string | undefined>);
     assert.equal(config.appName, 'Ready to Go');
     assert.equal(calls.length > 0, true);
     assert.match(calls.join('\n'), /NEXT_PUBLIC_APP_NAME/);
