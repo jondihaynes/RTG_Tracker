@@ -1,0 +1,88 @@
+# CI contract (Jondi-Studio/ci CONTRACT.md). This repo is on a personal account and cannot call the
+# private shared workflow, so the hygiene jobs and ci-ok are inlined here.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      # The runner image has shellcheck, so actionlint also checks every `run:` script.
+      - name: actionlint
+        env:
+          VERSION: 1.7.7
+        run: |
+          curl -sSfL "https://github.com/rhysd/actionlint/releases/download/v$VERSION/actionlint_${VERSION}_linux_amd64.tar.gz" | tar xz -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -color
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+      # Scans only the lines this event adds; matches stay redacted because this repo's logs are public.
+      - name: gitleaks over added lines
+        env:
+          VERSION: 8.28.0
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          bin="$RUNNER_TEMP/gitleaks-$VERSION"
+          mkdir -p "$bin"
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v$VERSION/gitleaks_${VERSION}_linux_x64.tar.gz" | tar xz -C "$bin" gitleaks
+          base=HEAD^1
+          if [ "$EVENT" = push ] && [ -n "$BEFORE" ] && [ "$BEFORE" != 0000000000000000000000000000000000000000 ]; then
+            git fetch -q --depth=1 origin "$BEFORE" && base=$BEFORE
+          fi
+          git diff -U0 --no-color --no-ext-diff "$base" HEAD > "$RUNNER_TEMP/changes.diff"
+          python3 .github/scripts/secret_scan.py "$bin/gitleaks" "$RUNNER_TEMP/changes.diff"
+
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      # No secrets needed: every env var the app reads has a built-in default.
+      - run: npm run build
+
+  ci-ok:
+    if: always()
+    needs: [actionlint, secret-scan, check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Fail unless every gate job succeeded
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        shell: python
+        run: |
+          import json, os, sys
+          needs = json.loads(os.environ["NEEDS"])
+          for j, i in sorted(needs.items()):
+              print(f"{j}: {i.get('result')}")
+          bad = [j for j, i in needs.items() if i.get("result") not in ("success", "skipped")]
+          sys.exit(1 if bad or not needs else 0)
