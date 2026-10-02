@@ -1,62 +1,59 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import assert from "node:assert/strict";
+import test from "node:test";
 
-process.env.NEXT_PUBLIC_APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'Ready to Go';
-process.env.NEXT_PUBLIC_OWNER_NAME = process.env.NEXT_PUBLIC_OWNER_NAME ?? 'Your Name';
-process.env.NEXT_PUBLIC_PAGE_TITLE = process.env.NEXT_PUBLIC_PAGE_TITLE ?? 'Ready to Go Status';
+process.env.NEXT_PUBLIC_APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? "Ready to Go";
+process.env.NEXT_PUBLIC_OWNER_NAME = process.env.NEXT_PUBLIC_OWNER_NAME ?? "Your Name";
+process.env.NEXT_PUBLIC_PAGE_TITLE = process.env.NEXT_PUBLIC_PAGE_TITLE ?? "Ready to Go Status";
 process.env.NEXT_PUBLIC_PAGE_DESCRIPTION =
   process.env.NEXT_PUBLIC_PAGE_DESCRIPTION ??
-  'A clean live status page for your current focus, next task, and recent history.';
-process.env.NEXT_PUBLIC_AUTH_CODE = process.env.NEXT_PUBLIC_AUTH_CODE ?? '1111';
-process.env.NEXT_PUBLIC_STATE_STORAGE_KEY =
-  process.env.NEXT_PUBLIC_STATE_STORAGE_KEY ?? 'ready-to-go-tracker-state';
-process.env.NEXT_PUBLIC_AUTH_STORAGE_KEY =
-  process.env.NEXT_PUBLIC_AUTH_STORAGE_KEY ?? 'ready-to-go-tracker-auth';
-process.env.NEXT_PUBLIC_SYNC_EVENT_NAME =
-  process.env.NEXT_PUBLIC_SYNC_EVENT_NAME ?? 'ready-to-go-tracker-sync';
+  "A clean live status page for your current focus, next task, and recent history.";
+process.env.NEXT_PUBLIC_AUTH_CODE = process.env.NEXT_PUBLIC_AUTH_CODE ?? "1111";
+process.env.NEXT_PUBLIC_STATE_STORAGE_KEY = process.env.NEXT_PUBLIC_STATE_STORAGE_KEY ?? "ready-to-go-tracker-state";
+process.env.NEXT_PUBLIC_AUTH_STORAGE_KEY = process.env.NEXT_PUBLIC_AUTH_STORAGE_KEY ?? "ready-to-go-tracker-auth";
+process.env.NEXT_PUBLIC_SYNC_EVENT_NAME = process.env.NEXT_PUBLIC_SYNC_EVENT_NAME ?? "ready-to-go-tracker-sync";
 
-const { createSiteConfig } = await import('../src/lib/site-config.ts');
+const { createSiteConfig } = await import("../src/lib/site-config.ts");
 
-test('createSiteConfig falls back to unprefixed environment variables', () => {
+test("createSiteConfig falls back to unprefixed environment variables", () => {
   const config = createSiteConfig({
-    NEXT_PUBLIC_APP_NAME: '',
-    NEXT_PUBLIC_OWNER_NAME: '',
-    NEXT_PUBLIC_PAGE_TITLE: '',
-    NEXT_PUBLIC_PAGE_DESCRIPTION: '',
-    NEXT_PUBLIC_STATE_STORAGE_KEY: '',
-    NEXT_PUBLIC_AUTH_STORAGE_KEY: '',
-    NEXT_PUBLIC_SYNC_EVENT_NAME: '',
-    NEXT_PUBLIC_AUTH_CODE: '',
-    APP_NAME: 'Fallback app',
-    OWNER_NAME: 'Fallback owner',
-    PAGE_TITLE: 'Fallback title',
-    PAGE_DESCRIPTION: 'Fallback description',
-    STATE_STORAGE_KEY: 'fallback-state',
-    AUTH_STORAGE_KEY: 'fallback-auth',
-    SYNC_EVENT_NAME: 'fallback-sync',
-    AUTH_CODE: '4321',
+    NEXT_PUBLIC_APP_NAME: "",
+    NEXT_PUBLIC_OWNER_NAME: "",
+    NEXT_PUBLIC_PAGE_TITLE: "",
+    NEXT_PUBLIC_PAGE_DESCRIPTION: "",
+    NEXT_PUBLIC_STATE_STORAGE_KEY: "",
+    NEXT_PUBLIC_AUTH_STORAGE_KEY: "",
+    NEXT_PUBLIC_SYNC_EVENT_NAME: "",
+    NEXT_PUBLIC_AUTH_CODE: "",
+    APP_NAME: "Fallback app",
+    OWNER_NAME: "Fallback owner",
+    PAGE_TITLE: "Fallback title",
+    PAGE_DESCRIPTION: "Fallback description",
+    STATE_STORAGE_KEY: "fallback-state",
+    AUTH_STORAGE_KEY: "fallback-auth",
+    SYNC_EVENT_NAME: "fallback-sync",
+    AUTH_CODE: "4321",
   } as Record<string, string | undefined>);
 
-  assert.equal(config.appName, 'Fallback app');
-  assert.equal(config.ownerName, 'Fallback owner');
-  assert.equal(config.pageTitle, 'Fallback title');
-  assert.equal(config.pageDescription, 'Fallback description');
-  assert.equal(config.stateStorageKey, 'fallback-state');
-  assert.equal(config.authStorageKey, 'fallback-auth');
-  assert.equal(config.syncEventName, 'fallback-sync');
-  assert.equal(config.authCode, '4321');
+  assert.equal(config.appName, "Fallback app");
+  assert.equal(config.ownerName, "Fallback owner");
+  assert.equal(config.pageTitle, "Fallback title");
+  assert.equal(config.pageDescription, "Fallback description");
+  assert.equal(config.stateStorageKey, "fallback-state");
+  assert.equal(config.authStorageKey, "fallback-auth");
+  assert.equal(config.syncEventName, "fallback-sync");
+  assert.equal(config.authCode, "4321");
 });
 
-test('createSiteConfig prefers NEXT_PUBLIC values over unprefixed fallbacks', () => {
+test("createSiteConfig prefers NEXT_PUBLIC values over unprefixed fallbacks", () => {
   const config = createSiteConfig({
-    NEXT_PUBLIC_APP_NAME: 'From NEXT_PUBLIC',
-    APP_NAME: 'From legacy',
+    NEXT_PUBLIC_APP_NAME: "From NEXT_PUBLIC",
+    APP_NAME: "From legacy",
   } as Record<string, string | undefined>);
 
-  assert.equal(config.appName, 'From NEXT_PUBLIC');
+  assert.equal(config.appName, "From NEXT_PUBLIC");
 });
 
-test('createSiteConfig warns when a value falls back to the built-in default', () => {
+test("createSiteConfig warns when a value falls back to the built-in default", () => {
   const warn = console.warn;
   const calls: string[] = [];
 
@@ -66,13 +63,13 @@ test('createSiteConfig warns when a value falls back to the built-in default', (
 
   try {
     const config = createSiteConfig({
-      NEXT_PUBLIC_APP_NAME: '',
-      APP_NAME: '',
+      NEXT_PUBLIC_APP_NAME: "",
+      APP_NAME: "",
     } as Record<string, string | undefined>);
 
-    assert.equal(config.appName, 'Ready to Go');
+    assert.equal(config.appName, "Ready to Go");
     assert.equal(calls.length > 0, true);
-    assert.match(calls.join('\n'), /NEXT_PUBLIC_APP_NAME/);
+    assert.match(calls.join("\n"), /NEXT_PUBLIC_APP_NAME/);
   } finally {
     console.warn = warn;
   }

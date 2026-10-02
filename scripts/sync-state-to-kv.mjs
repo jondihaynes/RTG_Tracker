@@ -1,11 +1,11 @@
-import fs from 'fs';
-import path from 'path';
-import { kv } from '@vercel/kv';
-import { createClient } from 'redis';
+import fs from "fs";
+import path from "path";
+import { kv } from "@vercel/kv";
+import { createClient } from "redis";
 
-const DATA_DIR = path.join(process.cwd(), '.data');
-const STATE_FILE = path.join(DATA_DIR, 'state.json');
-const STORAGE_KEY = process.env.STATE_STORAGE_KEY || 'ready-to-go-tracker-state';
+const DATA_DIR = path.join(process.cwd(), ".data");
+const STATE_FILE = path.join(DATA_DIR, "state.json");
+const STORAGE_KEY = process.env.STATE_STORAGE_KEY || "ready-to-go-tracker-state";
 const REDIS_URL = process.env.REDIS_URL?.trim();
 
 let redisClientPromise = null;
@@ -18,7 +18,7 @@ function getRedisClient() {
   if (!redisClientPromise) {
     redisClientPromise = (async () => {
       const client = createClient({ url: REDIS_URL });
-      client.on('error', () => undefined);
+      client.on("error", () => undefined);
       await client.connect();
       return client;
     })().catch((error) => {
@@ -62,23 +62,23 @@ async function writeSharedState(state) {
 }
 
 if (!fs.existsSync(STATE_FILE)) {
-  console.log('No local state file found. Nothing to sync.');
+  console.log("No local state file found. Nothing to sync.");
   process.exit(0);
 }
 
 let state;
 try {
-  state = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+  state = JSON.parse(fs.readFileSync(STATE_FILE, "utf8"));
 } catch {
-  console.error('Local state file is not valid JSON.');
+  console.error("Local state file is not valid JSON.");
   process.exit(1);
 }
 
 const saved = await writeSharedState(state);
 
 if (saved) {
-  console.log(REDIS_URL ? 'Synced tracker state to Redis.' : 'Synced tracker state to Vercel KV.');
+  console.log(REDIS_URL ? "Synced tracker state to Redis." : "Synced tracker state to Vercel KV.");
 } else {
-  console.error('Failed to sync tracker state to any shared store.');
+  console.error("Failed to sync tracker state to any shared store.");
   process.exit(1);
 }

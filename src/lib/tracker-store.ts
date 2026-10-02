@@ -1,4 +1,4 @@
-import { siteConfig } from '@/lib/site-config';
+import { siteConfig } from "@/lib/site-config";
 
 export type TrackerHistoryItem = {
   id: number;
@@ -21,7 +21,7 @@ export type TrackerState = {
 const STORAGE_KEY = siteConfig.stateStorageKey;
 
 const starterHistory: TrackerHistoryItem[] = [];
-const isString = (value: unknown): value is string => typeof value === 'string';
+const isString = (value: unknown): value is string => typeof value === "string";
 
 function normalizeHistory(history: unknown): TrackerHistoryItem[] {
   if (!Array.isArray(history)) {
@@ -29,24 +29,20 @@ function normalizeHistory(history: unknown): TrackerHistoryItem[] {
   }
 
   return history.reduce<TrackerHistoryItem[]>((acc, item) => {
-    if (!item || typeof item !== 'object') {
+    if (!item || typeof item !== "object") {
       return acc;
     }
 
     const record = item as Record<string, unknown>;
-    const text = isString(record.text) ? record.text : '';
-    const from = isString(record.from)
-      ? record.from
-      : isString(record.timestamp)
-        ? record.timestamp
-        : '';
+    const text = isString(record.text) ? record.text : "";
+    const from = isString(record.from) ? record.from : isString(record.timestamp) ? record.timestamp : "";
 
     if (!text && !from) {
       return acc;
     }
 
     acc.push({
-      id: typeof record.id === 'number' ? record.id : acc.length + 1,
+      id: typeof record.id === "number" ? record.id : acc.length + 1,
       text,
       from,
       until: isString(record.until) ? record.until : undefined,
@@ -58,13 +54,13 @@ function normalizeHistory(history: unknown): TrackerHistoryItem[] {
 
 export function getDefaultTrackerState(): TrackerState {
   return {
-    currentTask: '',
-    nextTask: '',
-    currentSince: '',
-    nextSince: '',
+    currentTask: "",
+    nextTask: "",
+    currentSince: "",
+    nextSince: "",
     history: starterHistory.map((item) => ({ ...item })),
-    statusMessage: '',
-    currentTaskPrevious: '',
+    statusMessage: "",
+    currentTaskPrevious: "",
     showOriginal: false,
   };
 }
@@ -79,13 +75,15 @@ export function normalizeTrackerState(input: Partial<TrackerState> | null | unde
     nextSince: isString(input?.nextSince) ? input.nextSince : defaults.nextSince,
     history: normalizeHistory(input?.history),
     statusMessage: isString(input?.statusMessage) ? input.statusMessage : defaults.statusMessage,
-    currentTaskPrevious: isString(input?.currentTaskPrevious) ? input.currentTaskPrevious : defaults.currentTaskPrevious,
+    currentTaskPrevious: isString(input?.currentTaskPrevious)
+      ? input.currentTaskPrevious
+      : defaults.currentTaskPrevious,
     showOriginal: input?.showOriginal === true,
   };
 }
 
 export function readTrackerState(): TrackerState {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return getDefaultTrackerState();
   }
 
@@ -103,7 +101,7 @@ export function readTrackerState(): TrackerState {
 }
 
 export function persistTrackerState(state: TrackerState): TrackerState {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return state;
   }
 
@@ -114,9 +112,9 @@ export function persistTrackerState(state: TrackerState): TrackerState {
 
   // Attempt to sync with server if available
   try {
-    fetch('/api/state', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    fetch("/api/state", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: serialized,
     }).catch(() => undefined);
   } catch {
@@ -173,16 +171,17 @@ function mergeTrackerStates(local: TrackerState, server: Partial<TrackerState>):
 
   // prefer server status message if present
   result.statusMessage = serverState.statusMessage ?? local.statusMessage ?? result.statusMessage;
-  result.currentTaskPrevious = serverState.currentTaskPrevious ?? local.currentTaskPrevious ?? result.currentTaskPrevious;
+  result.currentTaskPrevious =
+    serverState.currentTaskPrevious ?? local.currentTaskPrevious ?? result.currentTaskPrevious;
   result.showOriginal = serverState.showOriginal ?? local.showOriginal ?? result.showOriginal;
 
   return result;
 }
 
 export async function fetchAndMergeServerState(): Promise<TrackerState | null> {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === "undefined") return null;
   try {
-    const res = await fetch('/api/state', { cache: 'no-store' });
+    const res = await fetch("/api/state", { cache: "no-store" });
     if (!res.ok) return null;
     const json = await res.json();
     const serverState = json?.state as Partial<TrackerState> | undefined;
@@ -198,7 +197,7 @@ export async function fetchAndMergeServerState(): Promise<TrackerState | null> {
 }
 
 export function subscribeToTrackerState(callback: () => void): () => void {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return () => undefined;
   }
 
@@ -212,11 +211,11 @@ export function subscribeToTrackerState(callback: () => void): () => void {
     callback();
   };
 
-  window.addEventListener('storage', onStorage);
+  window.addEventListener("storage", onStorage);
   window.addEventListener(siteConfig.syncEventName, onSync);
 
   return () => {
-    window.removeEventListener('storage', onStorage);
+    window.removeEventListener("storage", onStorage);
     window.removeEventListener(siteConfig.syncEventName, onSync);
   };
 }

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { timeAgo } from '@/lib/timeago';
-import { siteConfig } from '@/lib/site-config';
-import { createQueuePushState, createRewordedCurrentTaskState } from '@/lib/tracker-flow';
+import Link from "next/link";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { timeAgo } from "@/lib/timeago";
+import { siteConfig } from "@/lib/site-config";
+import { createQueuePushState, createRewordedCurrentTaskState } from "@/lib/tracker-flow";
 import {
   fetchAndMergeServerState,
   getDefaultTrackerState,
@@ -12,7 +12,7 @@ import {
   readTrackerState,
   subscribeToTrackerState,
   type TrackerState,
-} from '@/lib/tracker-store';
+} from "@/lib/tracker-store";
 
 const AUTH_CODE = siteConfig.authCode;
 const AUTH_STORAGE_KEY = siteConfig.authStorageKey;
@@ -21,17 +21,17 @@ const SHARED_STATE_POLL_INTERVAL_MS = 9000;
 export default function ThisIsHePage() {
   const [mounted, setMounted] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authCode, setAuthCode] = useState('');
+  const [authCode, setAuthCode] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [authError, setAuthError] = useState('');
+  const [authError, setAuthError] = useState("");
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [blockedUntil, setBlockedUntil] = useState<number | null>(null);
   const [tracker, setTracker] = useState<TrackerState>(getDefaultTrackerState);
   const [currentFlare, setCurrentFlare] = useState(false);
   const [nextFlare, setNextFlare] = useState(false);
   const [queueInputOpen, setQueueInputOpen] = useState(false);
-  const [queueDraft, setQueueDraft] = useState('');
-  const [currentDraft, setCurrentDraft] = useState('');
+  const [queueDraft, setQueueDraft] = useState("");
+  const [currentDraft, setCurrentDraft] = useState("");
   const [currentEditUnlocked, setCurrentEditUnlocked] = useState(false);
   const [holdProgress, setHoldProgress] = useState(0);
   const longPressTimerRef = useRef<number | null>(null);
@@ -39,7 +39,7 @@ export default function ThisIsHePage() {
   const holdProgressIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
@@ -103,7 +103,7 @@ export default function ThisIsHePage() {
         history: changes.history ?? previous.history,
         currentSince: changes.currentTask !== undefined ? nowIso : previous.currentSince,
         nextSince: changes.nextTask !== undefined ? nowIso : previous.nextSince,
-        currentTaskPrevious: changes.currentTask !== undefined ? '' : previous.currentTaskPrevious,
+        currentTaskPrevious: changes.currentTask !== undefined ? "" : previous.currentTaskPrevious,
         showOriginal: changes.currentTask !== undefined ? false : previous.showOriginal,
       };
       persistTrackerState(nextState);
@@ -124,15 +124,15 @@ export default function ThisIsHePage() {
     event.preventDefault();
 
     if (blockedUntil && Date.now() < blockedUntil) {
-      setAuthError('Too many attempts — try again shortly.');
+      setAuthError("Too many attempts — try again shortly.");
       return;
     }
 
     if (authCode === AUTH_CODE) {
       setIsAuthenticated(true);
-      setAuthError('');
+      setAuthError("");
 
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         const payload = JSON.stringify({ authorized: true, remember: rememberMe });
         if (rememberMe) {
           window.localStorage.setItem(AUTH_STORAGE_KEY, payload);
@@ -153,17 +153,17 @@ export default function ThisIsHePage() {
       const until = Date.now() + blockFor;
       setBlockedUntil(until);
       setFailedAttempts(0);
-      setAuthError('Too many attempts — locked for 30 seconds.');
+      setAuthError("Too many attempts — locked for 30 seconds.");
     } else {
-      setAuthError('Incorrect code.');
+      setAuthError("Incorrect code.");
     }
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    setAuthCode('');
+    setAuthCode("");
     setRememberMe(false);
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       window.localStorage.removeItem(AUTH_STORAGE_KEY);
       window.sessionStorage.removeItem(AUTH_STORAGE_KEY);
     }
@@ -175,10 +175,13 @@ export default function ThisIsHePage() {
 
     updateTracker({
       currentTask: tracker.nextTask.trim(),
-      nextTask: '',
-      history: [{ id: Date.now(), text: tracker.currentTask, from: tracker.currentSince || '', until: timestampIso }, ...tracker.history].slice(0, 20),
+      nextTask: "",
+      history: [
+        { id: Date.now(), text: tracker.currentTask, from: tracker.currentSince || "", until: timestampIso },
+        ...tracker.history,
+      ].slice(0, 20),
       currentSince: timestampIso,
-      nextSince: '',
+      nextSince: "",
     });
   };
 
@@ -249,17 +252,17 @@ export default function ThisIsHePage() {
       persistTrackerState(nextState);
       return nextState;
     });
-    setQueueDraft('');
+    setQueueDraft("");
     setQueueInputOpen(false);
   };
 
-  const saveCurrentTaskEdit = (mode: 'changing' | 'reworded') => {
+  const saveCurrentTaskEdit = (mode: "changing" | "reworded") => {
     const trimmed = currentDraft.trim();
     if (!trimmed) return;
 
     setTracker((previous) => {
       const nextState =
-        mode === 'reworded'
+        mode === "reworded"
           ? createRewordedCurrentTaskState(
               {
                 ...previous,
@@ -270,14 +273,14 @@ export default function ThisIsHePage() {
           : {
               ...previous,
               currentTask: trimmed,
-              currentTaskPrevious: '',
+              currentTaskPrevious: "",
               showOriginal: false,
               currentSince: new Date().toISOString(),
             };
       persistTrackerState(nextState);
       return nextState;
     });
-    setCurrentDraft('');
+    setCurrentDraft("");
     setCurrentEditUnlocked(false);
   };
 
@@ -287,10 +290,13 @@ export default function ThisIsHePage() {
     const nowIso = new Date().toISOString();
     updateTracker({
       currentTask: tracker.nextTask.trim(),
-      nextTask: '',
-      history: [{ id: Date.now(), text: tracker.currentTask, from: tracker.currentSince || '', until: nowIso }, ...tracker.history].slice(0, 20),
+      nextTask: "",
+      history: [
+        { id: Date.now(), text: tracker.currentTask, from: tracker.currentSince || "", until: nowIso },
+        ...tracker.history,
+      ].slice(0, 20),
       currentSince: nowIso,
-      nextSince: '',
+      nextSince: "",
     });
   };
 
@@ -347,7 +353,10 @@ export default function ThisIsHePage() {
               </p>
             </div>
 
-            <form onSubmit={handleLogin} className="mt-8 max-w-md space-y-4 rounded-2xl border border-slate-800 bg-[#0f1115] p-6">
+            <form
+              onSubmit={handleLogin}
+              className="mt-8 max-w-md space-y-4 rounded-2xl border border-slate-800 bg-[#0f1115] p-6"
+            >
               <label className="block text-sm font-medium text-slate-300" htmlFor="auth-code">
                 4-digit code
               </label>
@@ -357,7 +366,7 @@ export default function ThisIsHePage() {
                 inputMode="numeric"
                 maxLength={4}
                 value={authCode}
-                onChange={(event) => setAuthCode(event.target.value.replace(/\D/g, '').slice(0, 4))}
+                onChange={(event) => setAuthCode(event.target.value.replace(/\D/g, "").slice(0, 4))}
                 className="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-lg text-white outline-none ring-0 focus:border-cyan-400"
                 placeholder="----"
               />
@@ -416,7 +425,7 @@ export default function ThisIsHePage() {
                     value={currentEditUnlocked ? currentDraft : tracker.currentTask}
                     readOnly={!currentEditUnlocked}
                     onChange={(event) => setCurrentDraft(event.target.value)}
-                    className={`mt-3 w-full rounded-2xl border bg-[#0f1115] px-5 py-4 text-2xl font-medium text-white outline-none focus:border-cyan-400 ${currentFlare ? 'border-cyan-400/60 ring-1 ring-cyan-400/20' : 'border-slate-800'}`}
+                    className={`mt-3 w-full rounded-2xl border bg-[#0f1115] px-5 py-4 text-2xl font-medium text-white outline-none focus:border-cyan-400 ${currentFlare ? "border-cyan-400/60 ring-1 ring-cyan-400/20" : "border-slate-800"}`}
                     placeholder={siteConfig.currentPlaceholder}
                   />
                   {currentEditUnlocked ? (
@@ -425,14 +434,14 @@ export default function ThisIsHePage() {
                       <div className="mt-3 flex flex-wrap gap-3">
                         <button
                           type="button"
-                          onClick={() => saveCurrentTaskEdit('changing')}
+                          onClick={() => saveCurrentTaskEdit("changing")}
                           className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/20"
                         >
                           Changing
                         </button>
                         <button
                           type="button"
-                          onClick={() => saveCurrentTaskEdit('reworded')}
+                          onClick={() => saveCurrentTaskEdit("reworded")}
                           className="rounded-full border border-slate-700/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-cyan-400/50 hover:text-white"
                         >
                           Reworded
@@ -477,7 +486,7 @@ export default function ThisIsHePage() {
                       id="next-task"
                       value={tracker.nextTask}
                       onChange={(event) => updateTracker({ nextTask: event.target.value })}
-                      className={`mt-3 w-full rounded-2xl border bg-slate-950/70 px-5 py-4 text-lg text-slate-200 outline-none focus:border-cyan-400 ${nextFlare ? 'border-cyan-400/60 ring-1 ring-cyan-400/20' : 'border-slate-800'}`}
+                      className={`mt-3 w-full rounded-2xl border bg-slate-950/70 px-5 py-4 text-lg text-slate-200 outline-none focus:border-cyan-400 ${nextFlare ? "border-cyan-400/60 ring-1 ring-cyan-400/20" : "border-slate-800"}`}
                       placeholder="What comes next?"
                     />
                   </div>
@@ -512,12 +521,11 @@ export default function ThisIsHePage() {
 
               <div className="grid gap-4 md:grid-cols-3">
                 {tracker.history.map((item) => (
-                  <article
-                    key={item.id}
-                    className="rounded-2xl border border-white/10 bg-[#12151a]/70 p-5"
-                  >
+                  <article key={item.id} className="rounded-2xl border border-white/10 bg-[#12151a]/70 p-5">
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-500">From: {timeAgo(item.from)}</p>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Until: {item.until ? timeAgo(item.until) : '—'}</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                      Until: {item.until ? timeAgo(item.until) : "—"}
+                    </p>
                     <p className="mt-3 text-lg font-semibold text-slate-100">{item.text}</p>
                   </article>
                 ))}
