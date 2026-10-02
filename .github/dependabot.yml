@@ -12,3 +12,13 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # Runtime is Node 24, so newer types would allow APIs that do not exist at runtime.
+      - dependency-name: "@types/node"
+        versions: [">=25"]
+      # typescript-eslint (via eslint-config-next) does not support TypeScript 7 yet.
+      - dependency-name: "typescript"
+        versions: [">=7"]
+      # eslint-plugin-react 7.37.5 does not support ESLint 10 yet.
+      - dependency-name: "eslint"
+        versions: [">=10"]
