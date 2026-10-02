@@ -78,6 +78,8 @@ jobs:
       - if: fromJSON(steps.changes.outputs.changes).code
         run: npm ci
       - if: fromJSON(steps.changes.outputs.changes).code
+        run: npm run format:check
+      - if: fromJSON(steps.changes.outputs.changes).code
         run: npm run lint
       - if: fromJSON(steps.changes.outputs.changes).code
         run: npm test

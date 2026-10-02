@@ -5,4 +5,4 @@ This version has breaking changes — APIs, conventions, and file structure may 
 <!-- END:nextjs-agent-rules -->
 
 ## CI
-Run `npm run gate` (lint, tests, build) before pushing; it equals the `check` job in `.github/workflows/ci.yml`. The `ci-ok` check is the single one to watch and the merge bar.
+Run `npm run gate` (format check, lint, tests, build) before pushing; it equals the `check` job in `.github/workflows/ci.yml`. The `ci-ok` check is the single one to watch and the merge bar. Prettier formats the code: run `npm run format` before committing.
