@@ -54,20 +54,36 @@ jobs:
           git diff -U0 --no-color --no-ext-diff "$base" HEAD > "$RUNNER_TEMP/changes.diff"
           python3 .github/scripts/secret_scan.py "$bin/gitleaks" "$RUNNER_TEMP/changes.diff"
 
+  # On a pull request that only touches docs the steps after `changes` skip (Jondi-Studio/ci
+  # CONTRACT.md, rule 14); a push to main or a manual run always runs them all.
+  # .github/scripts/changes.py is a copy of the org's action.
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+        with:
+          fetch-depth: 2
+      - id: changes
+        env:
+          EVENT: ${{ github.event_name }}
+          FILTERS: |
+            code: !**/*.md !docs/** !LICENSE*
+        run: python3 .github/scripts/changes.py
+      - if: fromJSON(steps.changes.outputs.changes).code
+        uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm test
+      - if: fromJSON(steps.changes.outputs.changes).code
+        run: npm ci
+      - if: fromJSON(steps.changes.outputs.changes).code
+        run: npm run lint
+      - if: fromJSON(steps.changes.outputs.changes).code
+        run: npm test
       # No secrets needed: every env var the app reads has a built-in default.
-      - run: npm run build
+      - if: fromJSON(steps.changes.outputs.changes).code
+        run: npm run build
 
   ci-ok:
     if: always()
