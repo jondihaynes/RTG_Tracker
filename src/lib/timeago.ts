@@ -1,5 +1,5 @@
 export function timeAgo(iso?: string | null): string {
-  if (!iso) return '—';
+  if (!iso) return "—";
   try {
     const then = new Date(iso).getTime();
     const now = Date.now();
@@ -14,6 +14,6 @@ export function timeAgo(iso?: string | null): string {
     const days = Math.floor(hours / 24);
     return `${days}d ago`;
   } catch {
-    return '—';
+    return "—";
   }
 }

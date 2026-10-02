@@ -11,15 +11,12 @@ export type TrackerFlowState = {
 
 const MAX_HISTORY_ITEMS = 20;
 
-export function createQueuePushState(
-  state: TrackerFlowState,
-  newCurrentTask: string,
-) {
+export function createQueuePushState(state: TrackerFlowState, newCurrentTask: string) {
   const timestampIso = new Date().toISOString();
   const historyItem = {
     id: Date.now(),
     text: state.currentTask,
-    from: state.currentSince || '',
+    from: state.currentSince || "",
     until: timestampIso,
   };
 
@@ -29,34 +26,29 @@ export function createQueuePushState(
     currentSince: timestampIso,
     nextTask: state.nextTask,
     nextSince: state.nextSince,
-    currentTaskPrevious: '',
+    currentTaskPrevious: "",
     showOriginal: false,
-    statusMessage: state.statusMessage || '',
+    statusMessage: state.statusMessage || "",
     history: [historyItem, ...state.history].slice(0, MAX_HISTORY_ITEMS),
   };
 }
 
-export function createRewordedCurrentTaskState(
-  state: TrackerFlowState,
-  newCurrentTask: string,
-) {
+export function createRewordedCurrentTaskState(state: TrackerFlowState, newCurrentTask: string) {
   const trimmed = newCurrentTask.trim();
   if (!trimmed) return state;
 
   return {
     ...state,
     currentTask: trimmed,
-    currentSince: state.currentSince || '',
+    currentSince: state.currentSince || "",
     currentTaskPrevious: state.currentTaskPrevious || state.currentTask,
     showOriginal: false,
-    statusMessage: state.statusMessage || '',
+    statusMessage: state.statusMessage || "",
   };
 }
 
 export function getVisibleCurrentTask(state: TrackerFlowState) {
-  const hasActiveAlternate = Boolean(
-    state.currentTaskPrevious && state.currentTaskPrevious !== state.currentTask,
-  );
+  const hasActiveAlternate = Boolean(state.currentTaskPrevious && state.currentTaskPrevious !== state.currentTask);
 
   if (state.showOriginal && hasActiveAlternate) {
     return state.currentTaskPrevious;

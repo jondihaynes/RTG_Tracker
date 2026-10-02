@@ -42,7 +42,13 @@ export default function HomePageClient({ config }: HomePageClientProps) {
       previous.history.length !== normalized.history.length ||
       previous.history.some((item, index) => {
         const candidate = normalized.history[index];
-        return !candidate || item.id !== candidate.id || item.text !== candidate.text || item.from !== candidate.from || item.until !== candidate.until;
+        return (
+          !candidate ||
+          item.id !== candidate.id ||
+          item.text !== candidate.text ||
+          item.from !== candidate.from ||
+          item.until !== candidate.until
+        );
       })
     ) {
       trackerRef.current = normalized;
@@ -59,8 +65,8 @@ export default function HomePageClient({ config }: HomePageClientProps) {
       const shared = await fetchAndMergeServerState();
       applyTrackerState(shared ?? readTrackerState());
 
-      if (typeof window !== 'undefined') {
-        const response = await fetch('/api/state', { cache: 'no-store' });
+      if (typeof window !== "undefined") {
+        const response = await fetch("/api/state", { cache: "no-store" });
         if (!response.ok) {
           try {
             const payload = await response.json();
@@ -68,7 +74,7 @@ export default function HomePageClient({ config }: HomePageClientProps) {
               setStorageError(String(payload.error));
             }
           } catch {
-            setStorageError('Shared storage is unavailable.');
+            setStorageError("Shared storage is unavailable.");
           }
         } else {
           setStorageError(null);
@@ -82,8 +88,8 @@ export default function HomePageClient({ config }: HomePageClientProps) {
       applyTrackerState(shared ?? readTrackerState());
     }, 9000);
 
-    let prevCurrent = '';
-    let prevNext = '';
+    let prevCurrent = "";
+    let prevNext = "";
     const unsub = subscribeToTrackerState(() => {
       const nextState = readTrackerState();
       applyTrackerState(nextState);
@@ -116,7 +122,7 @@ export default function HomePageClient({ config }: HomePageClientProps) {
   const visibleCurrentTask = useMemo(() => {
     return getVisibleCurrentTask({
       ...tracker,
-      currentTaskPrevious: tracker.currentTaskPrevious || '',
+      currentTaskPrevious: tracker.currentTaskPrevious || "",
       showOriginal: effectiveShowOriginal,
     });
   }, [effectiveShowOriginal, tracker]);
@@ -142,7 +148,9 @@ export default function HomePageClient({ config }: HomePageClientProps) {
         <header className="mb-10 flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.35em] text-slate-400">{config.appName}</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">{config.currentHeading}</h1>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+              {config.currentHeading}
+            </h1>
           </div>
         </header>
 
@@ -164,14 +172,16 @@ export default function HomePageClient({ config }: HomePageClientProps) {
               {config.currentSentence} {visibleCurrentTask}
             </h2>
             <div className="flex flex-wrap items-center gap-2">
-              <p className={`text-sm ${flashCurrent ? 'text-cyan-200 animate-pulse' : 'text-slate-400'}`}>Since: {timeAgo(tracker.currentSince)}</p>
+              <p className={`text-sm ${flashCurrent ? "text-cyan-200 animate-pulse" : "text-slate-400"}`}>
+                Since: {timeAgo(tracker.currentSince)}
+              </p>
               {canShowOriginal ? (
                 <button
                   type="button"
                   onClick={() => setShowOriginal((value) => !value)}
                   className="rounded-full border border-slate-700/70 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-slate-400 transition hover:border-cyan-400/40 hover:text-cyan-200"
                 >
-                  {effectiveShowOriginal ? 'show reworded' : '(reworded)'}
+                  {effectiveShowOriginal ? "show reworded" : "(reworded)"}
                 </button>
               ) : null}
             </div>
@@ -179,8 +189,12 @@ export default function HomePageClient({ config }: HomePageClientProps) {
 
           <div className="mt-8 rounded-2xl border border-slate-800 bg-[#0f1115] p-6 sm:p-7">
             <p className="text-sm uppercase tracking-[0.25em] text-slate-500">Doing next</p>
-            <p className="mt-3 text-2xl font-medium text-slate-300 sm:text-3xl">{tracker.nextTask || 'Nothing queued yet.'}</p>
-            <p className={`mt-2 text-sm ${flashNext ? 'text-cyan-200 animate-pulse' : 'text-slate-400'}`}>Since: {timeAgo(tracker.nextSince)}</p>
+            <p className="mt-3 text-2xl font-medium text-slate-300 sm:text-3xl">
+              {tracker.nextTask || "Nothing queued yet."}
+            </p>
+            <p className={`mt-2 text-sm ${flashNext ? "text-cyan-200 animate-pulse" : "text-slate-400"}`}>
+              Since: {timeAgo(tracker.nextSince)}
+            </p>
           </div>
         </section>
 
@@ -195,7 +209,7 @@ export default function HomePageClient({ config }: HomePageClientProps) {
               onClick={() => setShowAll((value) => !value)}
               className="w-fit rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:border-cyan-300 hover:bg-cyan-400/20"
             >
-              {showAll ? 'Show less' : 'View more'}
+              {showAll ? "Show less" : "View more"}
             </button>
           </div>
 
@@ -206,7 +220,9 @@ export default function HomePageClient({ config }: HomePageClientProps) {
                 className="rounded-2xl border border-white/10 bg-[#12151a]/70 p-5 transition duration-200 hover:border-cyan-400/50 hover:bg-[#141821] hover:shadow-[0_0_0_1px_rgba(103,232,249,0.16)]"
               >
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-500">From: {timeAgo(item.from)}</p>
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Until: {item.until ? timeAgo(item.until) : '—'}</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                  Until: {item.until ? timeAgo(item.until) : "—"}
+                </p>
                 <h4 className="mt-3 text-lg font-semibold text-slate-100">{item.text}</h4>
               </article>
             ))}
