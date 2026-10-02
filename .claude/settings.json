@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "jondis-skills": {
+      "source": {
+        "source": "github",
+        "repo": "Jondi-Studio/jondis-skills"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "jondis-skills@jondis-skills": true
+  }
+}
