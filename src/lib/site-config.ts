@@ -18,14 +18,14 @@ export type SiteConfigViewModel = {
 };
 
 const defaults = {
-  appName: 'Ready to Go',
-  ownerName: 'Your Name',
-  pageTitle: 'Ready to Go Status',
-  pageDescription: 'A clean live status page for your current focus, next task, and recent history.',
-  stateStorageKey: 'ready-to-go-tracker-state',
-  authStorageKey: 'ready-to-go-tracker-auth',
-  syncEventName: 'ready-to-go-tracker-sync',
-  authCode: '1111',
+  appName: "Ready to Go",
+  ownerName: "Your Name",
+  pageTitle: "Ready to Go Status",
+  pageDescription: "A clean live status page for your current focus, next task, and recent history.",
+  stateStorageKey: "ready-to-go-tracker-state",
+  authStorageKey: "ready-to-go-tracker-auth",
+  syncEventName: "ready-to-go-tracker-sync",
+  authCode: "1111",
 };
 
 const warnOnFallback = (key: string, fallback: string, legacyKey?: string) => {
@@ -34,7 +34,7 @@ const warnOnFallback = (key: string, fallback: string, legacyKey?: string) => {
 };
 
 const getTrimmedValue = (value: string | undefined) => {
-  if (typeof value === 'string' && value.trim()) {
+  if (typeof value === "string" && value.trim()) {
     return value.trim();
   }
 
@@ -70,57 +70,57 @@ export const createSiteConfig = (env: Record<string, string | undefined> = {}) =
       env.NEXT_PUBLIC_APP_NAME ?? process.env.NEXT_PUBLIC_APP_NAME,
       env.APP_NAME ?? process.env.APP_NAME,
       defaults.appName,
-      'NEXT_PUBLIC_APP_NAME',
-      'APP_NAME',
+      "NEXT_PUBLIC_APP_NAME",
+      "APP_NAME",
     ),
     ownerName: readEnv(
       env.NEXT_PUBLIC_OWNER_NAME ?? process.env.NEXT_PUBLIC_OWNER_NAME,
       env.OWNER_NAME ?? process.env.OWNER_NAME,
       defaults.ownerName,
-      'NEXT_PUBLIC_OWNER_NAME',
-      'OWNER_NAME',
+      "NEXT_PUBLIC_OWNER_NAME",
+      "OWNER_NAME",
     ),
     pageTitle: readEnv(
       env.NEXT_PUBLIC_PAGE_TITLE ?? process.env.NEXT_PUBLIC_PAGE_TITLE,
       env.PAGE_TITLE ?? process.env.PAGE_TITLE,
       defaults.pageTitle,
-      'NEXT_PUBLIC_PAGE_TITLE',
-      'PAGE_TITLE',
+      "NEXT_PUBLIC_PAGE_TITLE",
+      "PAGE_TITLE",
     ),
     pageDescription: readEnv(
       env.NEXT_PUBLIC_PAGE_DESCRIPTION ?? process.env.NEXT_PUBLIC_PAGE_DESCRIPTION,
       env.PAGE_DESCRIPTION ?? process.env.PAGE_DESCRIPTION,
       defaults.pageDescription,
-      'NEXT_PUBLIC_PAGE_DESCRIPTION',
-      'PAGE_DESCRIPTION',
+      "NEXT_PUBLIC_PAGE_DESCRIPTION",
+      "PAGE_DESCRIPTION",
     ),
     stateStorageKey: readEnv(
       env.NEXT_PUBLIC_STATE_STORAGE_KEY ?? process.env.NEXT_PUBLIC_STATE_STORAGE_KEY,
       env.STATE_STORAGE_KEY ?? process.env.STATE_STORAGE_KEY,
       defaults.stateStorageKey,
-      'NEXT_PUBLIC_STATE_STORAGE_KEY',
-      'STATE_STORAGE_KEY',
+      "NEXT_PUBLIC_STATE_STORAGE_KEY",
+      "STATE_STORAGE_KEY",
     ),
     authStorageKey: readEnv(
       env.NEXT_PUBLIC_AUTH_STORAGE_KEY ?? process.env.NEXT_PUBLIC_AUTH_STORAGE_KEY,
       env.AUTH_STORAGE_KEY ?? process.env.AUTH_STORAGE_KEY,
       defaults.authStorageKey,
-      'NEXT_PUBLIC_AUTH_STORAGE_KEY',
-      'AUTH_STORAGE_KEY',
+      "NEXT_PUBLIC_AUTH_STORAGE_KEY",
+      "AUTH_STORAGE_KEY",
     ),
     syncEventName: readEnv(
       env.NEXT_PUBLIC_SYNC_EVENT_NAME ?? process.env.NEXT_PUBLIC_SYNC_EVENT_NAME,
       env.SYNC_EVENT_NAME ?? process.env.SYNC_EVENT_NAME,
       defaults.syncEventName,
-      'NEXT_PUBLIC_SYNC_EVENT_NAME',
-      'SYNC_EVENT_NAME',
+      "NEXT_PUBLIC_SYNC_EVENT_NAME",
+      "SYNC_EVENT_NAME",
     ),
     authCode: readEnv(
       env.NEXT_PUBLIC_AUTH_CODE ?? process.env.NEXT_PUBLIC_AUTH_CODE,
       env.AUTH_CODE ?? process.env.AUTH_CODE,
       defaults.authCode,
-      'NEXT_PUBLIC_AUTH_CODE',
-      'AUTH_CODE',
+      "NEXT_PUBLIC_AUTH_CODE",
+      "AUTH_CODE",
     ),
   };
 

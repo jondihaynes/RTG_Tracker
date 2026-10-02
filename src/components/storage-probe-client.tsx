@@ -51,9 +51,7 @@ export default function StorageProbeClient() {
         {probeMessage ? (
           <>
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Result</p>
-            <p className={`mt-2 font-medium ${probeOk ? "text-emerald-300" : "text-rose-300"}`}>
-              {probeMessage}
-            </p>
+            <p className={`mt-2 font-medium ${probeOk ? "text-emerald-300" : "text-rose-300"}`}>{probeMessage}</p>
           </>
         ) : (
           <p className="text-slate-400">No probe has been run yet.</p>
