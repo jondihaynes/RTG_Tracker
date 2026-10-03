@@ -25,9 +25,10 @@ acting on that topic.
 5. **Run this repo's local gate before pushing** (named in the repo's AGENTS.md or CLAUDE.md).
    `ci-ok` is the one CI check to watch. *Why: each red push costs a CI cycle on a small runner
    pool.* Detail: `docs/standards/ci-and-testing.md`.
-6. **CI runs on self-hosted runners only.** A GitHub-hosted runner needs Jondi's `# hosted:` tag on
-   its `runs-on` line, and only he adds it. *Why: Jondi's decision on 2026-10-02, after GitHub
-   refused hosted jobs over billing.* Detail: `docs/standards/runners.md`.
+6. **CI runs on self-hosted runners, always.** GitHub-hosted runners are not an option: never use,
+   suggest or fall back to them. When the runners are busy or off, jobs queue; say that, and wait.
+   *Why: Jondi's rule (2026-10-03); GitHub refuses hosted jobs for this org.*
+   Detail: `docs/standards/runners.md`.
 7. **Shared skills and agents come only from the `jondis-skills` plugin.** Never copy one into a
    repo. *Why: copies drift.* Detail: `docs/standards/skills-and-agents.md`.
 8. **Subagents run on Sonnet** (`claude-sonnet-5-5`). Use Opus only when Jondi asks; use Fable only
